@@ -7,6 +7,22 @@ import customtkinter as ctk
 from marketfinder.config import theme
 
 
+def apply_wraplength(widget: ctk.CTkBaseClass | ctk.CTkFrame, width: int) -> None:
+    """Ajusta wraplength en labels anidados (evita recorte al estrechar ventana)."""
+    if isinstance(widget, ctk.CTkLabel):
+        try:
+            widget.configure(wraplength=width)
+        except Exception:
+            pass
+        return
+    try:
+        children = widget.winfo_children()
+    except Exception:
+        return
+    for child in children:
+        apply_wraplength(child, width)
+
+
 class ScrollableView(ctk.CTkFrame):
     """Vista con CTkScrollableFrame que se estira con la ventana."""
 
@@ -32,14 +48,11 @@ class ScrollableView(ctk.CTkFrame):
         self.body.grid(row=1, column=0, sticky="nsew", padx=8, pady=(0, 8))
         self.body.grid_columnconfigure(0, weight=1)
 
-        # Reajustar wrap al cambiar tamaño (evita recorte de texto)
         self.bind("<Configure>", self._on_resize)
 
-    def _on_resize(self, _event=None) -> None:
-        width = max(self.winfo_width() - 80, 320)
-        for child in self.body.winfo_children():
-            if isinstance(child, ctk.CTkLabel):
-                try:
-                    child.configure(wraplength=width)
-                except Exception:
-                    pass
+    def _on_resize(self, event=None) -> None:
+        # Ignorar eventos de hijos muy pequeños; usar ancho de esta vista
+        if event is not None and event.widget is not self:
+            return
+        width = max(self.winfo_width() - 64, 280)
+        apply_wraplength(self.body, width)

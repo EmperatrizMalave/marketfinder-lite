@@ -88,6 +88,8 @@ class SuppliersView(ScrollableView):
                 text=f"#{s.id}  {s.name}  ·  {s.country}  ·  ofertas: {n_offers}",
                 text_color=theme.TEXT,
                 anchor="w",
+                wraplength=480,
+                justify="left",
             ).grid(row=0, column=0, padx=12, pady=10, sticky="ew")
             ctk.CTkButton(
                 row, text="Editar", width=70, fg_color=theme.BORDER, command=lambda x=s: self._load(x)

@@ -7,8 +7,9 @@ from decimal import Decimal, InvalidOperation
 import customtkinter as ctk
 
 from marketfinder.config import theme
-from marketfinder.core.models import Offer, OfferKind, Product, Provenance
+from marketfinder.core.models import MarketMetrics, Offer, OfferKind, Product, Provenance
 from marketfinder.data.repositories import (
+    MetricsRepository,
     OfferRepository,
     ProductRepository,
     SupplierRepository,
@@ -23,6 +24,7 @@ class ProductsView(ScrollableView):
         self.products = ProductRepository(conn)
         self.suppliers = SupplierRepository(conn)
         self.offers = OfferRepository(conn)
+        self.metrics = MetricsRepository(conn)
         self._build_form()
         self._build_list()
         self.refresh()
@@ -68,8 +70,20 @@ class ProductsView(ScrollableView):
         )
         self.prov_menu.grid(row=5, column=1, padx=8, pady=4, sticky="ew")
 
+        self.price_var = ctk.StringVar()
+        self.demand_var = ctk.StringVar()
+        self._labeled_entry(form, 5, 2, "Precio venta", self.price_var)
+        self._labeled_entry(form, 6, 0, "Demanda 0–100", self.demand_var)
+        ctk.CTkLabel(
+            form,
+            text="Precio/demanda opcionales → métricas (vacío = desconocido, no 0 inventado)",
+            text_color=theme.TEXT_MUTED,
+            wraplength=480,
+            anchor="w",
+        ).grid(row=6, column=2, columnspan=2, padx=8, pady=4, sticky="w")
+
         btns = ctk.CTkFrame(form, fg_color="transparent")
-        btns.grid(row=6, column=0, columnspan=4, padx=12, pady=10, sticky="w")
+        btns.grid(row=7, column=0, columnspan=4, padx=12, pady=10, sticky="w")
         ctk.CTkButton(
             btns, text="Guardar", fg_color=theme.PRIMARY, text_color=theme.BG, command=self._save
         ).pack(side="left", padx=(0, 8))
@@ -78,7 +92,7 @@ class ProductsView(ScrollableView):
         ).pack(side="left")
 
         self.status = ctk.CTkLabel(form, text="", text_color=theme.TEXT_MUTED)
-        self.status.grid(row=7, column=0, columnspan=4, padx=12, pady=(0, 10), sticky="w")
+        self.status.grid(row=8, column=0, columnspan=4, padx=12, pady=(0, 10), sticky="w")
 
     def _labeled_entry(self, parent, row, col, label, var, colspan=1):
         ctk.CTkLabel(parent, text=label, text_color=theme.TEXT_MUTED).grid(
@@ -132,6 +146,8 @@ class ProductsView(ScrollableView):
                 text=f"#{p.id}  {p.name}  ·  {p.sku or 's/SKU'}  ·  {offer_txt}",
                 text_color=theme.TEXT,
                 anchor="w",
+                wraplength=480,
+                justify="left",
             ).grid(row=0, column=0, padx=12, pady=10, sticky="ew")
             ctk.CTkButton(
                 row, text="Editar", width=70, fg_color=theme.BORDER, command=lambda prod=p: self._load(prod)
@@ -161,26 +177,19 @@ class ProductsView(ScrollableView):
         self.weight_var.set("")
         self.notes_var.set("")
         self.cost_var.set("")
+        self.price_var.set("")
+        self.demand_var.set("")
         self.prov_menu.set(Provenance.PENDIENTE.value)
         self.status.configure(text="")
 
-    def _parse_weight(self) -> Decimal | None:
-        raw = self.weight_var.get().strip()
+    def _parse_optional_decimal(self, raw: str, label: str) -> Decimal | None:
+        raw = raw.strip()
         if not raw:
             return None
         try:
             return Decimal(raw)
         except InvalidOperation:
-            raise ValueError("Peso inválido")
-
-    def _parse_cost(self) -> Decimal | None:
-        raw = self.cost_var.get().strip()
-        if not raw:
-            return None
-        try:
-            return Decimal(raw)
-        except InvalidOperation:
-            raise ValueError("Costo inválido")
+            raise ValueError(f"{label} inválido")
 
     def _save(self) -> None:
         name = self.name_var.get().strip()
@@ -188,11 +197,19 @@ class ProductsView(ScrollableView):
             self.status.configure(text="Nombre obligatorio", text_color=theme.ERROR)
             return
         try:
-            weight = self._parse_weight()
-            cost = self._parse_cost()
+            weight = self._parse_optional_decimal(self.weight_var.get(), "Peso")
+            cost = self._parse_optional_decimal(self.cost_var.get(), "Costo")
+            price = self._parse_optional_decimal(self.price_var.get(), "Precio venta")
+            demand = self._parse_optional_decimal(self.demand_var.get(), "Demanda")
         except ValueError as exc:
             self.status.configure(text=str(exc), text_color=theme.ERROR)
             return
+
+        notes = self.notes_var.get().strip() or None
+        if notes and "ficticio" not in notes.lower():
+            notes = f"{notes} | FICTICIO"
+        elif not notes:
+            notes = "FICTICIO"
 
         product = Product(
             id=self._edit_id,
@@ -200,7 +217,7 @@ class ProductsView(ScrollableView):
             sku=self.sku_var.get().strip() or None,
             category=self.category_var.get().strip() or None,
             weight_grams=weight,
-            notes=self.notes_var.get().strip() or None,
+            notes=notes,
             kind=OfferKind.UNITARIO,
         )
         if self._edit_id:
@@ -225,6 +242,22 @@ class ProductsView(ScrollableView):
                 self.offers.update(offer)
             else:
                 self.offers.create(offer)
+
+        if product.id is not None and (price is not None or demand is not None):
+            self.metrics.create(
+                MarketMetrics(
+                    product_id=product.id,
+                    sale_price=price,
+                    sale_price_provenance=(
+                        Provenance.ESTIMADO if price is not None else Provenance.PENDIENTE
+                    ),
+                    demand_score=demand,
+                    demand_provenance=(
+                        Provenance.ESTIMADO if demand is not None else Provenance.PENDIENTE
+                    ),
+                    source_notes="FICTICIO — captura UI Productos",
+                )
+            )
 
         self.status.configure(text="Guardado", text_color=theme.PRIMARY)
         self._clear()

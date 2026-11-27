@@ -6,7 +6,7 @@ import customtkinter as ctk
 
 from marketfinder.config import theme
 from marketfinder.config.settings import Settings
-from marketfinder.utils.paths import db_path, user_data_dir
+from marketfinder.ui.views.base import apply_wraplength
 
 
 class HomeView(ctk.CTkFrame):
@@ -23,15 +23,14 @@ class HomeView(ctk.CTkFrame):
         super().__init__(master, fg_color=theme.BG, **kwargs)
         self.settings = settings
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(2, weight=1)
-
-        scroll = ctk.CTkScrollableFrame(self, fg_color=theme.BG, corner_radius=0)
-        scroll.grid(row=0, column=0, sticky="nsew", rowspan=3)
-        scroll.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
+        self._scroll = ctk.CTkScrollableFrame(self, fg_color=theme.BG, corner_radius=0)
+        self._scroll.grid(row=0, column=0, sticky="nsew")
+        self._scroll.grid_columnconfigure(0, weight=1)
+
         heading = ctk.CTkLabel(
-            scroll,
+            self._scroll,
             text="Inicio",
             font=ctk.CTkFont(family=theme.FONT_FAMILY, size=24, weight="bold"),
             text_color=theme.TEXT,
@@ -39,8 +38,8 @@ class HomeView(ctk.CTkFrame):
         )
         heading.grid(row=0, column=0, padx=28, pady=(28, 4), sticky="ew")
 
-        intro = ctk.CTkLabel(
-            scroll,
+        self._intro = ctk.CTkLabel(
+            self._scroll,
             text=(
                 "MarketFinder Lite — Etapa 1 (núcleo offline): productos, proveedores, "
                 "calculadora, ranking y presupuesto local en SQLite. "
@@ -48,13 +47,13 @@ class HomeView(ctk.CTkFrame):
             ),
             font=ctk.CTkFont(family=theme.FONT_FAMILY, size=13),
             text_color=theme.TEXT_MUTED,
-            wraplength=640,
+            wraplength=480,
             justify="left",
             anchor="w",
         )
-        intro.grid(row=1, column=0, padx=28, pady=(0, 20), sticky="ew")
+        self._intro.grid(row=1, column=0, padx=28, pady=(0, 20), sticky="ew")
 
-        cards = ctk.CTkFrame(scroll, fg_color="transparent")
+        cards = ctk.CTkFrame(self._scroll, fg_color="transparent")
         cards.grid(row=2, column=0, padx=28, pady=8, sticky="ew")
         cards.grid_columnconfigure((0, 1), weight=1)
 
@@ -81,23 +80,31 @@ class HomeView(ctk.CTkFrame):
             value_color=theme.WARNING,
         )
 
-        note = ctk.CTkLabel(
-            scroll,
+        self._note = ctk.CTkLabel(
+            self._scroll,
             text=(
-                f"Datos de usuario: {user_data_dir(settings.data_dir)}\n"
-                f"Base de datos: {db_path(settings.data_dir)}\n"
-                "Usa Configuración para fees y presupuesto. "
-                "Los datos de prueba deben etiquetarse como ficticios."
+                "Usa el menú lateral: Productos, Proveedores, Rentabilidad, Ranking y "
+                "Configuración. Las rutas técnicas (DB, logs, AppData) están en Configuración → "
+                "Diagnóstico. Etiqueta siempre los datos de prueba como ficticios."
             ),
             font=ctk.CTkFont(family=theme.FONT_FAMILY, size=12),
             text_color=theme.TEXT_MUTED,
-            wraplength=640,
+            wraplength=480,
             justify="left",
             anchor="w",
         )
-        note.grid(row=3, column=0, padx=28, pady=(24, 12), sticky="ew")
+        self._note.grid(row=3, column=0, padx=28, pady=(24, 16), sticky="ew")
 
-        self.bind("<Configure>", lambda e: intro.configure(wraplength=max(e.width - 80, 320)))
+        self.bind("<Configure>", self._on_resize)
+        self.after(50, self._on_resize)
+
+    def _on_resize(self, event=None) -> None:
+        if event is not None and getattr(event, "widget", None) is not self:
+            return
+        width = max(self.winfo_width() - 72, 280)
+        self._intro.configure(wraplength=width)
+        self._note.configure(wraplength=width)
+        apply_wraplength(self._scroll, max(width // 2 - 24, 160))
 
     def _stat_card(
         self,
@@ -142,5 +149,5 @@ class HomeView(ctk.CTkFrame):
             font=ctk.CTkFont(family=theme.FONT_FAMILY, size=11),
             text_color=theme.TEXT_MUTED,
             anchor="w",
-            wraplength=280,
+            wraplength=200,
         ).grid(row=2, column=0, padx=18, pady=(0, 16), sticky="ew")

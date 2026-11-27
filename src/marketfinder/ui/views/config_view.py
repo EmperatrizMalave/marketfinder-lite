@@ -1,4 +1,4 @@
-"""Configuración: parámetros comerciales y fee profile editable."""
+"""Configuración: parámetros comerciales, fees y diagnóstico de rutas."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from marketfinder.config import theme
 from marketfinder.core.models import COMMERCIAL_DEFAULTS
 from marketfinder.data.repositories import FeeProfileRepository, SettingsRepository, WeightsRepository
 from marketfinder.ui.views.base import ScrollableView
-from marketfinder.utils.paths import db_path, user_data_dir
+from marketfinder.utils.paths import db_path, exports_dir, logs_dir, user_data_dir
 
 
 class ConfigView(ScrollableView):
@@ -26,25 +26,52 @@ class ConfigView(ScrollableView):
         self._build()
 
     def _build(self) -> None:
-        info = ctk.CTkLabel(
+        # Diagnóstico de almacenamiento (rutas técnicas)
+        diag = ctk.CTkFrame(
             self.body,
+            fg_color=theme.PANEL,
+            corner_radius=10,
+            border_width=1,
+            border_color=theme.BORDER,
+        )
+        diag.grid(row=0, column=0, sticky="ew", padx=12, pady=8)
+        diag.grid_columnconfigure(0, weight=1)
+        ctk.CTkLabel(diag, text="Diagnóstico de almacenamiento", text_color=theme.PRIMARY).grid(
+            row=0, column=0, padx=12, pady=(10, 4), sticky="w"
+        )
+        ctk.CTkLabel(
+            diag,
             text=(
-                f"DB: {db_path(self.data_dir)}\n"
-                f"Datos: {user_data_dir(self.data_dir)}\n"
-                "Fees = parámetros editables (verificar en ML / SAT). "
-                "No son tarifas oficiales."
+                f"AppData / datos: {user_data_dir(self.data_dir)}\n"
+                f"Base de datos (SQLite): {db_path(self.data_dir)}\n"
+                f"Logs: {logs_dir(self.data_dir)}\n"
+                f"Exports: {exports_dir(self.data_dir)}\n"
+                "Override de tests: variable de entorno MARKETFINDER_DATA_DIR."
             ),
             text_color=theme.TEXT_MUTED,
             justify="left",
             anchor="w",
+            wraplength=520,
+        ).grid(row=1, column=0, padx=12, pady=(0, 12), sticky="ew")
+
+        warn = ctk.CTkLabel(
+            self.body,
+            text=(
+                "Fees = parámetros editables (verificar en ML / SAT). "
+                "No son tarifas oficiales. Presupuesto $0 de infra: sin servicios de pago."
+            ),
+            text_color=theme.WARNING,
+            justify="left",
+            anchor="w",
+            wraplength=520,
         )
-        info.grid(row=0, column=0, sticky="ew", padx=12, pady=8)
+        warn.grid(row=1, column=0, sticky="ew", padx=12, pady=(0, 8))
 
         # Comerciales
         box = ctk.CTkFrame(
             self.body, fg_color=theme.PANEL, corner_radius=10, border_width=1, border_color=theme.BORDER
         )
-        box.grid(row=1, column=0, sticky="ew", padx=12, pady=8)
+        box.grid(row=2, column=0, sticky="ew", padx=12, pady=8)
         box.grid_columnconfigure(1, weight=1)
         ctk.CTkLabel(box, text="Parámetros comerciales", text_color=theme.PRIMARY).grid(
             row=0, column=0, columnspan=2, padx=12, pady=(10, 6), sticky="w"
@@ -59,14 +86,18 @@ class ConfigView(ScrollableView):
             ctk.CTkEntry(box, textvariable=var).grid(row=i, column=1, padx=12, pady=3, sticky="ew")
 
         ctk.CTkButton(
-            box, text="Guardar parámetros", fg_color=theme.PRIMARY, text_color=theme.BG, command=self._save_settings
+            box,
+            text="Guardar parámetros",
+            fg_color=theme.PRIMARY,
+            text_color=theme.BG,
+            command=self._save_settings,
         ).grid(row=len(COMMERCIAL_DEFAULTS) + 1, column=0, columnspan=2, padx=12, pady=12, sticky="w")
 
         # Fees
         fee_box = ctk.CTkFrame(
             self.body, fg_color=theme.PANEL, corner_radius=10, border_width=1, border_color=theme.BORDER
         )
-        fee_box.grid(row=2, column=0, sticky="ew", padx=12, pady=8)
+        fee_box.grid(row=3, column=0, sticky="ew", padx=12, pady=8)
         fee_box.grid_columnconfigure(1, weight=1)
         ctk.CTkLabel(
             fee_box,
@@ -98,21 +129,25 @@ class ConfigView(ScrollableView):
             ctk.CTkEntry(fee_box, textvariable=var).grid(row=i, column=1, padx=12, pady=3, sticky="ew")
 
         ctk.CTkButton(
-            fee_box, text="Guardar fees", fg_color=theme.PRIMARY, text_color=theme.BG, command=self._save_fees
+            fee_box,
+            text="Guardar fees",
+            fg_color=theme.PRIMARY,
+            text_color=theme.BG,
+            command=self._save_fees,
         ).grid(row=len(fee_fields) + 1, column=0, columnspan=2, padx=12, pady=12, sticky="w")
 
-        # Pesos (solo lectura en Etapa 1 — fijos por usuario)
         w = self.weights.get()
         weights_lbl = ctk.CTkLabel(
             self.body,
             text=f"Pesos ranking (fijos Etapa 1): {w.as_dict()}  total={w.total()}",
             text_color=theme.TEXT_MUTED,
             anchor="w",
+            wraplength=520,
         )
-        weights_lbl.grid(row=3, column=0, sticky="ew", padx=12, pady=8)
+        weights_lbl.grid(row=4, column=0, sticky="ew", padx=12, pady=8)
 
         self.status = ctk.CTkLabel(self.body, text="", text_color=theme.TEXT_MUTED, anchor="w")
-        self.status.grid(row=4, column=0, sticky="ew", padx=12, pady=8)
+        self.status.grid(row=5, column=0, sticky="ew", padx=12, pady=8)
 
     def _save_settings(self) -> None:
         for key, var in self._vars.items():
