@@ -1,1 +1,1 @@
-"""Vistas / pantallas de la aplicación."""
+"""Vistas CustomTkinter."""

@@ -1,4 +1,4 @@
-"""Vista de inicio — placeholders de Etapa 0."""
+"""Vista de inicio — Etapa 1."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ import customtkinter as ctk
 
 from marketfinder.config import theme
 from marketfinder.config.settings import Settings
+from marketfinder.utils.paths import db_path, user_data_dir
 
 
 class HomeView(ctk.CTkFrame):
@@ -15,14 +16,22 @@ class HomeView(ctk.CTkFrame):
         self,
         master: ctk.CTk | ctk.CTkFrame,
         settings: Settings,
+        *,
+        product_count: int = 0,
         **kwargs,
     ) -> None:
         super().__init__(master, fg_color=theme.BG, **kwargs)
         self.settings = settings
         self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(2, weight=1)
+
+        scroll = ctk.CTkScrollableFrame(self, fg_color=theme.BG, corner_radius=0)
+        scroll.grid(row=0, column=0, sticky="nsew", rowspan=3)
+        scroll.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
         heading = ctk.CTkLabel(
-            self,
+            scroll,
             text="Inicio",
             font=ctk.CTkFont(family=theme.FONT_FAMILY, size=24, weight="bold"),
             text_color=theme.TEXT,
@@ -31,11 +40,11 @@ class HomeView(ctk.CTkFrame):
         heading.grid(row=0, column=0, padx=28, pady=(28, 4), sticky="ew")
 
         intro = ctk.CTkLabel(
-            self,
+            scroll,
             text=(
-                "Bienvenida a MarketFinder Lite. Esta es la Etapa 0 (cimientos): "
-                "ventana, menú y tema listos. Las fuentes de datos y el análisis "
-                "llegarán en etapas posteriores, tras tu aprobación."
+                "MarketFinder Lite — Etapa 1 (núcleo offline): productos, proveedores, "
+                "calculadora, ranking y presupuesto local en SQLite. "
+                "Sin API Mercado Libre, sin web, sin pagos."
             ),
             font=ctk.CTkFont(family=theme.FONT_FAMILY, size=13),
             text_color=theme.TEXT_MUTED,
@@ -45,7 +54,7 @@ class HomeView(ctk.CTkFrame):
         )
         intro.grid(row=1, column=0, padx=28, pady=(0, 20), sticky="ew")
 
-        cards = ctk.CTkFrame(self, fg_color="transparent")
+        cards = ctk.CTkFrame(scroll, fg_color="transparent")
         cards.grid(row=2, column=0, padx=28, pady=8, sticky="ew")
         cards.grid_columnconfigure((0, 1), weight=1)
 
@@ -54,29 +63,31 @@ class HomeView(ctk.CTkFrame):
             row=0,
             col=0,
             title="Productos en seguimiento",
-            value="0",
-            hint="Aún no hay productos cargados",
+            value=str(product_count),
+            hint="CRUD en sección Productos",
         )
         fuente_estado = (
             "Credenciales presentes (no verificadas)"
             if settings.has_ml_credentials
-            else "Pendiente — sin app/credenciales configuradas"
+            else "Pendiente — sin app/credenciales (OK en Etapa 1)"
         )
         self._stat_card(
             cards,
             row=0,
             col=1,
             title="Estado de fuentes",
-            value="Pendiente",
+            value="Offline",
             hint=fuente_estado,
             value_color=theme.WARNING,
         )
 
         note = ctk.CTkLabel(
-            self,
+            scroll,
             text=(
-                "Nota: no se conecta a Mercado Libre en esta etapa. "
-                "Consulta docs/requisitos-api-mercado-libre.md antes de la Etapa 3."
+                f"Datos de usuario: {user_data_dir(settings.data_dir)}\n"
+                f"Base de datos: {db_path(settings.data_dir)}\n"
+                "Usa Configuración para fees y presupuesto. "
+                "Los datos de prueba deben etiquetarse como ficticios."
             ),
             font=ctk.CTkFont(family=theme.FONT_FAMILY, size=12),
             text_color=theme.TEXT_MUTED,
@@ -85,6 +96,8 @@ class HomeView(ctk.CTkFrame):
             anchor="w",
         )
         note.grid(row=3, column=0, padx=28, pady=(24, 12), sticky="ew")
+
+        self.bind("<Configure>", lambda e: intro.configure(wraplength=max(e.width - 80, 320)))
 
     def _stat_card(
         self,
