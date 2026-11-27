@@ -1,0 +1,39 @@
+# Entorno virtual y secretos
+.venv/
+.env
+*.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+
+# Pytest / cobertura
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Datos locales de la app (fuera del código en producción; por si acaso)
+*.db
+*.sqlite
+*.sqlite3
+data/local/
+exports/
+*.xlsx
+*.xls
+!docs/**/*.xlsx
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
