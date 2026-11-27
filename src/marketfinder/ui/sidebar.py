@@ -8,18 +8,19 @@ import customtkinter as ctk
 
 from marketfinder.config import theme
 
-# Las 10 secciones del producto (Etapa 0: solo Inicio activo)
+# Etapa 1: Inicio + Productos + Proveedores + Rentabilidad + Ranking + Config
 SECTIONS: list[tuple[str, str, bool]] = [
     ("inicio", "Inicio", True),
+    ("productos", "Productos", True),
+    ("proveedores", "Proveedores", True),
+    ("rentabilidad", "Rentabilidad", True),
+    ("ranking", "Ranking", True),
     ("investigacion", "Investigación", False),
     ("demanda", "Demanda", False),
-    ("proveedores", "Proveedores", False),
-    ("rentabilidad", "Rentabilidad", False),
-    ("ranking", "Ranking", False),
     ("historial", "Historial", False),
     ("comparar_excel", "Comparar Excel", False),
     ("reportes", "Reportes", False),
-    ("configuracion", "Configuración", False),
+    ("configuracion", "Configuración", True),
 ]
 
 
@@ -45,6 +46,7 @@ class Sidebar(ctk.CTkFrame):
 
         self.grid_propagate(False)
         self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(99, weight=1)
 
         title = ctk.CTkLabel(
             self,
@@ -57,7 +59,7 @@ class Sidebar(ctk.CTkFrame):
 
         subtitle = ctk.CTkLabel(
             self,
-            text="Etapa 0 · Cimientos",
+            text="Etapa 1 · Núcleo offline",
             font=ctk.CTkFont(family=theme.FONT_FAMILY, size=11),
             text_color=theme.TEXT_MUTED,
             anchor="w",
@@ -91,7 +93,6 @@ class Sidebar(ctk.CTkFrame):
             if k == key:
                 btn.configure(fg_color=theme.SIDEBAR_ACTIVE, text_color=theme.TEXT)
             else:
-                # Mantener estilo deshabilitado / inactivo
                 enabled = next(e for kk, _, e in SECTIONS if kk == k)
                 btn.configure(
                     fg_color="transparent",

@@ -1,4 +1,4 @@
-"""Pruebas de humo — Etapa 0."""
+"""Pruebas de humo — Etapa 0 conservadas / ajustadas a Etapa 1."""
 
 from __future__ import annotations
 
@@ -27,11 +27,20 @@ def test_theme_constants() -> None:
 
 
 def test_sidebar_has_ten_sections() -> None:
-    assert len(SECTIONS) == 10
+    # Etapa 1: 11 entradas (se añadió Productos); 6 habilitadas
+    assert len(SECTIONS) == 11
     keys = [k for k, _, _ in SECTIONS]
     assert keys[0] == "inicio"
-    assert SECTIONS[0][2] is True
-    assert all(not enabled for _, _, enabled in SECTIONS[1:])
+    assert "productos" in keys
+    enabled = {k for k, _, e in SECTIONS if e}
+    assert enabled == {
+        "inicio",
+        "productos",
+        "proveedores",
+        "rentabilidad",
+        "ranking",
+        "configuracion",
+    }
 
 
 def test_load_settings_defaults(tmp_path, monkeypatch) -> None:
@@ -46,16 +55,16 @@ def test_load_settings_defaults(tmp_path, monkeypatch) -> None:
 def test_settings_detects_credentials(monkeypatch) -> None:
     monkeypatch.setenv("ML_CLIENT_ID", "app-id-demo")
     monkeypatch.setenv("ML_CLIENT_SECRET", "secret-demo")
-    # load_settings lee os.environ; forzamos Settings directo para el unit test
     s = Settings(ml_client_id="app-id-demo", ml_client_secret="secret-demo")
     assert s.has_ml_credentials is True
 
 
-def test_create_app_builds_window() -> None:
+def test_create_app_builds_window(tmp_path, monkeypatch) -> None:
     """Intenta construir la ventana sin mainloop. Omite si no hay display Tk."""
-    # En algunos entornos CI/headless Tk falla al crear la raíz.
     if os.environ.get("MARKETFINDER_SKIP_GUI") == "1":
         pytest.skip("MARKETFINDER_SKIP_GUI=1")
+
+    monkeypatch.setenv("MARKETFINDER_DATA_DIR", str(tmp_path / "gui-data"))
 
     try:
         from marketfinder.app import create_app

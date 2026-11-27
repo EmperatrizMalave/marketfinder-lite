@@ -14,7 +14,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 @dataclass(frozen=True)
 class Settings:
-    """Ajustes de Etapa 0 (sin llamadas a APIs todavía)."""
+    """Ajustes de aplicación (sin llamadas a APIs en Etapa 1)."""
 
     app_name: str = "MarketFinder Lite"
     app_env: str = "development"
@@ -24,6 +24,7 @@ class Settings:
     ml_access_token: str = ""
     ml_refresh_token: str = ""
     project_root: Path = PROJECT_ROOT
+    data_dir: Path | None = None  # override APPDATA (tests)
 
     @property
     def has_ml_credentials(self) -> bool:
@@ -40,6 +41,7 @@ def load_settings(env_file: Path | None = None) -> Settings:
         # Permite variables ya presentes en el entorno del proceso
         load_dotenv(override=False)
 
+    data_override = os.getenv("MARKETFINDER_DATA_DIR")
     return Settings(
         app_name=os.getenv("APP_NAME", "MarketFinder Lite"),
         app_env=os.getenv("APP_ENV", "development"),
@@ -49,4 +51,5 @@ def load_settings(env_file: Path | None = None) -> Settings:
         ml_access_token=os.getenv("ML_ACCESS_TOKEN", ""),
         ml_refresh_token=os.getenv("ML_REFRESH_TOKEN", ""),
         project_root=PROJECT_ROOT,
+        data_dir=Path(data_override) if data_override else None,
     )
