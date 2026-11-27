@@ -1,8 +1,8 @@
 # Plan detallado — Etapa 1 (Núcleo offline + motor financiero)
 
 **Fecha:** 26 nov 2026 (America/Mexico_City)  
-**Estado:** **PENDIENTE DE APROBACIÓN DEL USUARIO**  
-**Regla:** no escribir código de Etapa 1, no instalar deps nuevas, no tocar la website, hasta OK explícito.
+**Estado:** **IMPLEMENTADA** (26 nov 2026, America/Mexico_City) — 1.1→1.7 en CORI_OMNI. Aprobada con mejoras. Pendiente OK usuario antes de Etapa 2.  
+**Regla:** no iniciar Etapa 2 sin aprobación explícita.
 
 Proyecto: `C:\Users\emper\Documents\dev\marketfinder-lite`  
 Plan maestro: `docs/marketfinder-lite-plan.md`

@@ -5,8 +5,8 @@
 **Repo local:** `C:\Users\emper\Documents\dev\marketfinder-lite`  
 **Remoto:** https://github.com/EmperatrizMalave/marketfinder-lite  
 
-**Estado:** Etapa 0 **completada**. Etapa 1 **pendiente de aprobación explícita del usuario**. **No iniciar código de Etapa 1** hasta esa aprobación.  
-**Fuera de alcance ahora:** desarrollo de la web comercial (Etapa 6), pagos, licencias, APIs de IA, scraping.
+**Estado:** Etapa 0 **completada**. Etapa 1 **IMPLEMENTADA** (26 nov 2026, America/Mexico_City) en CORI_OMNI — 1.1→1.7. Pendiente aprobación usuario para Etapa 2.  
+**Fuera de alcance ahora:** Etapa 2+, web comercial (Etapa 6), pagos, licencias, APIs de IA, scraping.
 
 Documentos relacionados:
 
@@ -201,11 +201,10 @@ Detalle: `docs/requisitos-api-mercado-libre.md`.
 - Repo `marketfinder-lite`, venv, CustomTkinter (ventana + sidebar), tema, settings/dotenv, docs API ML, pytest humo.  
 - Verificación reconfirmada al actualizar este plan: **pytest 6/6**, GUI abre.
 
-### Etapa 1 — Núcleo offline + motor financiero ⏳ (pendiente de aprobación)
+### Etapa 1 — Núcleo offline + motor financiero ✅ (IMPLEMENTADA)
 
 - Productos, proveedores, calculadora de rentabilidad, optimizador de presupuesto, scoring/ranking (pesos y bandas de la §5), SQLite, logging, parámetros comerciales de la §4.  
-- Plan detallado: `docs/plan-etapa-1.md`.  
-- **No iniciar** hasta OK del usuario.
+- Plan detallado: `docs/plan-etapa-1.md`. Entrega lista; **no** iniciar Etapa 2 sin OK.
 
 ### Etapa 2 — Comparador Excel ↔ IA externa
 
@@ -336,4 +335,4 @@ Ranking, landing y parámetros comerciales iniciales ya están **definidos** (se
 
 ## 14. Próximo paso
 
-Tras aprobación explícita del usuario del documento `docs/plan-etapa-1.md`: iniciar **solo** Etapa 1 en `CORI_OMNI`, sin web comercial y sin pagos/licencias.
+Etapa 1 entregada. **Pedir aprobación del usuario antes de Etapa 2** (comparador Excel ↔ IA externa). Sin web comercial y sin pagos/licencias.

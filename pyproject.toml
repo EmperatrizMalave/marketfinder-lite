@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "marketfinder-lite"
 version = "0.0.1"
-description = "Herramienta de escritorio para investigación de productos en Mercado Libre México (Etapa 0)."
+description = "Herramienta de escritorio para investigación de productos en Mercado Libre México (Etapa 1)."
 readme = "README.md"
 requires-python = ">=3.12"
 license = "LicenseRef-Proprietary"
@@ -14,6 +14,8 @@ dependencies = [
     "customtkinter>=5.2.2,<6",
     "python-dotenv>=1.0.0,<2",
     "darkdetect>=0.8.0,<1",
+    "pandas>=2.2.0,<3",
+    "openpyxl>=3.1.0,<4",
 ]
 
 [project.optional-dependencies]
